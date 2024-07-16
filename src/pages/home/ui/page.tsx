@@ -1,18 +1,19 @@
 import * as React from "react";
+import { toKebabCase } from "js-convert-case";
 
 function HomePage() {
 	// --- STATES & REFS ---
 	const [candidates, setCandidates] = React.useState<Candidate[] | undefined>(undefined);
-	const dialogRef = React.useRef<HTMLDialogElement>(null);
+	const [candidateToEdit, setCandidateToEdit] = React.useState<Candidate | undefined>(undefined);
+	const addCandidateDialogRef = React.useRef<HTMLDialogElement>(null);
+	const editCandidateDialogRef = React.useRef<HTMLDialogElement>(null);
 
 	// --- EFFECTS ---
 	React.useEffect(
 		function loadCandidates() {
 			if (candidates === undefined) {
-				const candidatesSaved = (
-					window.localStorage.getItem("CANDIDATES")
-						? JSON.parse(window.localStorage.getItem("CANDIDATES") || "")
-						: CANDIDATES
+				const candidatesSaved = JSON.parse(
+					window.localStorage.getItem("CANDIDATES") || "[]",
 				) as Candidate[];
 
 				setCandidates(candidatesSaved);
@@ -25,9 +26,13 @@ function HomePage() {
 
 	// --- HANDLERS ---
 	function handleMoveCandidateToPrevStepClick(candidate: Candidate) {
-		return function innerHandleMoveCandidateToPrevStepClick() {
+		return function innerHandleMoveCandidateToPrevStepClick(
+			event: React.MouseEvent<HTMLButtonElement>,
+		) {
+			event.stopPropagation();
+
 			const index = STEPS.findIndex((step) => {
-				return step.name === candidate.step;
+				return step.id === candidate.step;
 			});
 
 			if (index === 0) return;
@@ -39,7 +44,7 @@ function HomePage() {
 					if (item.id === candidate.id) {
 						return {
 							...item,
-							step: nextStep.name,
+							step: nextStep.id,
 						};
 					}
 
@@ -50,9 +55,13 @@ function HomePage() {
 	}
 
 	function handleMoveCandidateToNextStepClick(candidate: Candidate) {
-		return function innerHandleMoveCandidateToNextStepClick() {
+		return function innerHandleMoveCandidateToNextStepClick(
+			event: React.MouseEvent<HTMLButtonElement>,
+		) {
+			event.stopPropagation();
+
 			const index = STEPS.findIndex((step) => {
-				return step.name === candidate.step;
+				return step.id === candidate.step;
 			});
 
 			if (index === STEPS.length - 1) return;
@@ -64,7 +73,7 @@ function HomePage() {
 					if (item.id === candidate.id) {
 						return {
 							...item,
-							step: nextStep.name,
+							step: nextStep.id,
 						};
 					}
 
@@ -75,11 +84,14 @@ function HomePage() {
 	}
 
 	function handleAddCandidateClick() {
-		getDialogRef().showModal();
+		getDialogRef(addCandidateDialogRef).showModal();
 	}
 
-	function handleCloseModalClick() {
-		getDialogRef().close();
+	function handleCloseModalClick(dialogRef: React.RefObject<HTMLDialogElement | null>) {
+		return function innerHandleCloseModalClick() {
+			setCandidateToEdit(undefined);
+			getDialogRef(dialogRef).close();
+		};
 	}
 
 	function handleAddCandidateSubmit(event: React.FormEvent) {
@@ -90,25 +102,63 @@ function HomePage() {
 		setCandidates(
 			candidates?.concat([
 				{
-					id: (formElement["candidate-name"].value || "").toLowerCase(),
+					id: toKebabCase(formElement["candidate-name"].value || ""),
+					step: "entrevista-inicial",
 					name: formElement["candidate-name"].value || "",
-					step: "Entrevista inicial",
-					comments: formElement["candidate-comments"].value,
+					comments: formElement["candidate-comments"].value || "",
 				},
 			]),
 		);
 
-		getDialogRef().close();
+		getDialogRef(addCandidateDialogRef).close();
+	}
+
+	function handleEditCandidateSubmit(candidateId: Candidate["id"]) {
+		return function innerHandleEditCandidateSubmit(event: React.FormEvent) {
+			event.preventDefault();
+
+			const formElement = event.currentTarget as HTMLFormElement;
+
+			setCandidates(
+				candidates?.map((item) => {
+					if (item.id === candidateId) {
+						return {
+							...item,
+							name: formElement["candidate-name"].value || "",
+							comments: formElement["candidate-comments"].value || "",
+						};
+					}
+
+					return item;
+				}),
+			);
+
+			getDialogRef(editCandidateDialogRef).close();
+		};
+	}
+
+	function handleShowEditCandidateDialogClick(candidateId: Candidate["id"]) {
+		return function innerHandleShowEditCandidateDialogClick() {
+			setCandidateToEdit(candidates?.find((item) => item.id === candidateId));
+			getDialogRef(editCandidateDialogRef).showModal();
+		};
+	}
+
+	function handleDeleteCandidateClick(candidateId: Candidate["id"]) {
+		return function innerHandleDeleteCandidateClick() {
+			setCandidates(candidates?.filter((item) => item.id !== candidateId));
+			handleCloseModalClick(editCandidateDialogRef)();
+		};
 	}
 
 	// --- UTILS ---
-	function filterCandidatesByStep(stepName: Step["name"]) {
+	function filterCandidatesByStep(stepId: Step["id"]) {
 		return candidates?.filter((candidate) => {
-			return candidate.step === stepName;
+			return candidate.step === stepId;
 		});
 	}
 
-	function getDialogRef() {
+	function getDialogRef(dialogRef: React.RefObject<HTMLDialogElement | null>) {
 		const dialogElement = dialogRef.current;
 
 		if (!dialogElement) {
@@ -123,10 +173,10 @@ function HomePage() {
 	}
 
 	return (
-		<main className="tw-p-3 tw-overflow-auto">
+		<main className="tw-p-3 tw-overflow-scroll tw-max-w-full tw-min-h-screen">
 			<div className="tw-flex tw-flex-nowrap tw-gap-3">
 				{STEPS.map((step) => {
-					const candidates = filterCandidatesByStep(step.name);
+					const candidates = filterCandidatesByStep(step.id);
 
 					return (
 						<section
@@ -139,12 +189,13 @@ function HomePage() {
 								{candidates?.length === 0 ? (
 									<p className="tw-text-[#717D8F] tw-text-center tw-p-5">No hay candidatos</p>
 								) : (
-									<div className="">
+									<div>
 										{candidates?.map((candidate) => {
 											return (
 												<div
 													key={candidate.id}
-													className="tw-p-3 tw-flex tw-justify-between tw-bg-white tw-mb-1 last:tw-mb-0"
+													className="tw-p-3 tw-flex tw-justify-between tw-bg-white tw-mb-1 last:tw-mb-0 tw-cursor-pointer"
+													onClick={handleShowEditCandidateDialogClick(candidate.id)}
 												>
 													<div>
 														<p>{candidate.name}</p>
@@ -184,34 +235,19 @@ function HomePage() {
 				})}
 			</div>
 
-			<dialog
-				className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4"
-				ref={dialogRef}
-			>
-				<button
-					className="tw-absolute tw-top-1 tw-right-4 tw-text-3xl"
-					onClick={handleCloseModalClick}
-				>
-					x
-				</button>
-				<h2 className="tw-text-2xl tw-font-bold tw-text-center tw-mb-6">Agregar candidato</h2>
-				<form onSubmit={handleAddCandidateSubmit}>
-					<input
-						type="text"
-						name="candidate-name"
-						placeholder="Nombre"
-						className="tw-w-full tw-mb-2 tw-border tw-p-2"
-					/>
-					<textarea
-						name="candidate-comments"
-						placeholder="Comentarios"
-						className="tw-w-full tw-mb-2 tw-border tw-p-2"
-					/>
-					<button className="tw-text-center tw-block tw-border tw-border-[#969798] tw-w-full tw-rounded-sm">
-						Agregar
-					</button>
-				</form>
-			</dialog>
+			<AddCandidateDialog
+				dialogRef={addCandidateDialogRef}
+				handleCloseModalClick={handleCloseModalClick(addCandidateDialogRef)}
+				handleAddCandidateSubmit={handleAddCandidateSubmit}
+			/>
+
+			<EditCandidateDialog
+				dialogRef={editCandidateDialogRef}
+				candidate={candidateToEdit}
+				handleCloseModalClick={handleCloseModalClick(editCandidateDialogRef)}
+				handleEditCandidateSubmit={handleEditCandidateSubmit}
+				handleDeleteCandidateClick={handleDeleteCandidateClick}
+			/>
 		</main>
 	);
 }
@@ -225,7 +261,7 @@ type Step = (typeof STEPS)[number];
 type Candidate = {
 	id: string;
 	name: string;
-	step: Step["name"];
+	step: Step["id"];
 	comments: string;
 };
 
@@ -239,17 +275,102 @@ const STEPS = [
 	{ id: "rechazo", name: "Rechazo" },
 ] as const;
 
-const CANDIDATES = [
-	{
-		id: "goncy",
-		name: "Gonzalo Pozzo",
-		step: "Entrevista técnica",
-		comments: "Medio pelo",
-	},
-	{
-		id: "doe",
-		name: "John Doe",
-		step: "Entrevista inicial",
-		comments: "",
-	},
-];
+// --- COMPONENTS ---
+
+type T_AddCandidateDialogProps = {
+	dialogRef: React.Ref<HTMLDialogElement>;
+	handleCloseModalClick: () => void;
+	handleAddCandidateSubmit: (event: React.FormEvent) => void;
+};
+
+function AddCandidateDialog({
+	dialogRef,
+	handleCloseModalClick,
+	handleAddCandidateSubmit,
+}: T_AddCandidateDialogProps) {
+	return (
+		<dialog
+			className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4"
+			ref={dialogRef}
+		>
+			<button
+				className="tw-absolute tw-top-1 tw-right-4 tw-text-3xl"
+				onClick={handleCloseModalClick}
+			>
+				x
+			</button>
+			<h2 className="tw-text-2xl tw-font-bold tw-text-center tw-mb-6">Agregar candidato</h2>
+			<form onSubmit={handleAddCandidateSubmit}>
+				<input
+					type="text"
+					name="candidate-name"
+					placeholder="Nombre"
+					className="tw-w-full tw-mb-2 tw-border tw-p-2"
+				/>
+				<textarea
+					name="candidate-comments"
+					placeholder="Comentarios"
+					className="tw-w-full tw-mb-2 tw-border tw-p-2"
+				/>
+				<button className="tw-text-center tw-block tw-border tw-border-[#969798] tw-w-full tw-rounded-sm">
+					Agregar
+				</button>
+			</form>
+		</dialog>
+	);
+}
+
+type T_EditCandidateDialogProps = {
+	dialogRef: React.Ref<HTMLDialogElement>;
+	candidate: Candidate | undefined;
+	handleCloseModalClick: () => void;
+	handleEditCandidateSubmit: (candidateId: Candidate["id"]) => (event: React.FormEvent) => void;
+	handleDeleteCandidateClick: (candidateId: Candidate["id"]) => (event: React.FormEvent) => void;
+};
+
+function EditCandidateDialog({
+	dialogRef,
+	candidate,
+	handleCloseModalClick,
+	handleEditCandidateSubmit,
+	handleDeleteCandidateClick,
+}: T_EditCandidateDialogProps) {
+	return (
+		<dialog
+			className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4"
+			ref={dialogRef}
+		>
+			<button
+				className="tw-absolute tw-top-1 tw-right-4 tw-text-3xl"
+				onClick={handleCloseModalClick}
+			>
+				x
+			</button>
+			<h2 className="tw-text-2xl tw-font-bold tw-text-center tw-mb-6">Editar candidato</h2>
+			<form onSubmit={handleEditCandidateSubmit(candidate?.id || "")}>
+				<input
+					type="text"
+					name="candidate-name"
+					placeholder="Nombre"
+					className="tw-w-full tw-mb-2 tw-border tw-p-2"
+					defaultValue={candidate?.name}
+				/>
+				<textarea
+					name="candidate-comments"
+					placeholder="Comentarios"
+					className="tw-w-full tw-mb-2 tw-border tw-p-2"
+					defaultValue={candidate?.comments}
+				/>
+				<button className="tw-text-center tw-block tw-border tw-border-[#969798] tw-w-full tw-rounded-sm">
+					Editar
+				</button>
+			</form>
+			<button
+				className="tw-text-center tw-block  tw-w-full tw-rounded-sm tw-text-white tw-bg-red-500 tw-mt-1"
+				onClick={handleDeleteCandidateClick(candidate?.id || "")}
+			>
+				Eliminar
+			</button>
+		</dialog>
+	);
+}
