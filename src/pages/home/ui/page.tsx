@@ -98,14 +98,15 @@ function HomePage() {
 		event.preventDefault();
 
 		const formElement = event.currentTarget as HTMLFormElement;
+		const formData = new FormData(formElement);
 
 		setCandidates(
 			candidates?.concat([
 				{
-					id: toKebabCase(formElement["candidate-name"].value || ""),
+					id: toKebabCase(formData.get("add-candidate-name")?.toString() || ""),
 					step: "entrevista-inicial",
-					name: formElement["candidate-name"].value || "",
-					comments: formElement["candidate-comments"].value || "",
+					name: formData.get("add-candidate-name")?.toString() || "",
+					comments: formData.get("add-candidate-comments")?.toString() || "",
 				},
 			]),
 		);
@@ -118,14 +119,15 @@ function HomePage() {
 			event.preventDefault();
 
 			const formElement = event.currentTarget as HTMLFormElement;
+			const formData = new FormData(formElement);
 
 			setCandidates(
 				candidates?.map((item) => {
 					if (item.id === candidateId) {
 						return {
 							...item,
-							name: formElement["candidate-name"].value || "",
-							comments: formElement["candidate-comments"].value || "",
+							name: formData.get("edit-candidate-name")?.toString() || "",
+							comments: formData.get("edit-candidate-comments")?.toString() || "",
 						};
 					}
 
@@ -133,7 +135,7 @@ function HomePage() {
 				}),
 			);
 
-			getDialogRef(editCandidateDialogRef).close();
+			handleCloseModalClick(editCandidateDialogRef)();
 		};
 	}
 
@@ -181,6 +183,7 @@ function HomePage() {
 					return (
 						<section
 							key={step.id}
+							data-testid={step.id}
 							className="tw-bg-[#EBECF0] tw-px-3 tw-pt-4 tw-pb-3 tw-min-w-96"
 						>
 							<h2 className="tw-font-bold tw-text-2xl tw-mb-5">{step.name}</h2>
@@ -194,6 +197,7 @@ function HomePage() {
 											return (
 												<div
 													key={candidate.id}
+													data-testid={candidate.id}
 													className="tw-p-3 tw-flex tw-justify-between tw-bg-white tw-mb-1 last:tw-mb-0 tw-cursor-pointer"
 													onClick={handleShowEditCandidateDialogClick(candidate.id)}
 												>
@@ -290,7 +294,8 @@ function AddCandidateDialog({
 }: T_AddCandidateDialogProps) {
 	return (
 		<dialog
-			className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4"
+			data-testid="add-candidate-dialog"
+			className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4 tw-max-w-full tw-w-96 tw-mx-auto"
 			ref={dialogRef}
 		>
 			<button
@@ -301,18 +306,31 @@ function AddCandidateDialog({
 			</button>
 			<h2 className="tw-text-2xl tw-font-bold tw-text-center tw-mb-6">Agregar candidato</h2>
 			<form onSubmit={handleAddCandidateSubmit}>
-				<input
-					type="text"
-					name="candidate-name"
-					placeholder="Nombre"
-					className="tw-w-full tw-mb-2 tw-border tw-p-2"
-				/>
-				<textarea
-					name="candidate-comments"
-					placeholder="Comentarios"
-					className="tw-w-full tw-mb-2 tw-border tw-p-2"
-				/>
-				<button className="tw-text-center tw-block tw-border tw-border-[#969798] tw-w-full tw-rounded-sm">
+				<label htmlFor="add-candidate-name">
+					<p className="tw-font-bold tw-cursor-pointer">Nombre</p>
+					<input
+						id="add-candidate-name"
+						name="add-candidate-name"
+						type="text"
+						placeholder="Nombre"
+						className="tw-w-full tw-mb-3 tw-border tw-p-2"
+					/>
+				</label>
+
+				<label htmlFor="add-candidate-comments">
+					<p className="tw-font-bold tw-cursor-pointer">Comentarios</p>
+					<textarea
+						id="add-candidate-comments"
+						name="add-candidate-comments"
+						placeholder="Comentarios"
+						className="tw-w-full tw-mb-3 tw-border tw-p-2"
+					/>
+				</label>
+
+				<button
+					type="submit"
+					className="tw-text-center tw-block tw-border tw-border-[#969798] tw-w-full tw-rounded-sm"
+				>
 					Agregar
 				</button>
 			</form>
@@ -337,7 +355,8 @@ function EditCandidateDialog({
 }: T_EditCandidateDialogProps) {
 	return (
 		<dialog
-			className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4"
+			data-testid="edit-candidate-dialog"
+			className="tw-p-4 tw-border backdrop:tw-backdrop-blur-sm tw-relative tw-pt-16 tw-pb-4 tw-max-w-full tw-w-96 tw-mx-auto"
 			ref={dialogRef}
 		>
 			<button
@@ -348,19 +367,28 @@ function EditCandidateDialog({
 			</button>
 			<h2 className="tw-text-2xl tw-font-bold tw-text-center tw-mb-6">Editar candidato</h2>
 			<form onSubmit={handleEditCandidateSubmit(candidate?.id || "")}>
-				<input
-					type="text"
-					name="candidate-name"
-					placeholder="Nombre"
-					className="tw-w-full tw-mb-2 tw-border tw-p-2"
-					defaultValue={candidate?.name}
-				/>
-				<textarea
-					name="candidate-comments"
-					placeholder="Comentarios"
-					className="tw-w-full tw-mb-2 tw-border tw-p-2"
-					defaultValue={candidate?.comments}
-				/>
+				<label htmlFor="edit-candidate-name">
+					<p className="tw-font-bold tw-cursor-pointer">Nombre</p>
+					<input
+						id="edit-candidate-name"
+						name="edit-candidate-name"
+						type="text"
+						placeholder="Nombre"
+						className="tw-w-full tw-mb-3 tw-border tw-p-2"
+						defaultValue={candidate?.name || ""}
+					/>
+				</label>
+
+				<label htmlFor="edit-candidate-comments">
+					<p className="tw-font-bold tw-cursor-pointer">Comentarios</p>
+					<textarea
+						id="edit-candidate-comments"
+						name="edit-candidate-comments"
+						placeholder="Comentarios"
+						className="tw-w-full tw-mb-3 tw-border tw-p-2"
+						defaultValue={candidate?.comments || ""}
+					/>
+				</label>
 				<button className="tw-text-center tw-block tw-border tw-border-[#969798] tw-w-full tw-rounded-sm">
 					Editar
 				</button>
