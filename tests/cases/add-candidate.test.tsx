@@ -12,6 +12,14 @@ test("add candidate", async () => {
 	await userExpectsSeeingTheNewCandidate();
 });
 
+test("close add candidate modal", async () => {
+	render(<App />);
+
+	await userOpensAddCandidateDialog();
+	await userClosesDialog();
+	await userExpectsDialogHidden();
+});
+
 // --- STEPS ---
 
 const DATA = {
@@ -51,6 +59,14 @@ function userSubmitsTheForm() {
 	fireEvent.click(
 		within(addCandidateDialog).getByRole("button", {
 			name: /agregar/i,
+		}),
+	);
+}
+
+function userClosesDialog() {
+	fireEvent.click(
+		screen.getByRole("button", {
+			name: /close/i,
 		}),
 	);
 }

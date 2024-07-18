@@ -184,7 +184,7 @@ function HomePage() {
 						<section
 							key={step.id}
 							data-testid={step.id}
-							className="tw-bg-[#EBECF0] tw-px-3 tw-pt-4 tw-pb-3 tw-min-w-96"
+							className="step-container tw-bg-[#EBECF0] tw-px-3 tw-pt-4 tw-pb-3 tw-min-w-96"
 						>
 							<h2 className="tw-font-bold tw-text-2xl tw-mb-5">{step.name}</h2>
 
@@ -207,12 +207,14 @@ function HomePage() {
 													</div>
 													<div>
 														<button
+															data-testid="prev-button"
 															className="tw-bg-[#EFEFEF] tw-w-7 tw-text-xs tw-rounded-sm tw-h-6 tw-border tw-border-[#969798]"
 															onClick={handleMoveCandidateToPrevStepClick(candidate)}
 														>
 															{"<"}
 														</button>
 														<button
+															data-testid="next-button"
 															className="tw-bg-[#EFEFEF] tw-w-7 tw-text-xs tw-rounded-sm tw-h-6 tw-border tw-border-[#969798]"
 															onClick={handleMoveCandidateToNextStepClick(candidate)}
 														>
@@ -300,6 +302,7 @@ function AddCandidateDialog({
 		>
 			<button
 				className="tw-absolute tw-top-1 tw-right-4 tw-text-3xl"
+				aria-label="Close"
 				onClick={handleCloseModalClick}
 			>
 				x
@@ -361,6 +364,7 @@ function EditCandidateDialog({
 		>
 			<button
 				className="tw-absolute tw-top-1 tw-right-4 tw-text-3xl"
+				aria-label="Close"
 				onClick={handleCloseModalClick}
 			>
 				x
