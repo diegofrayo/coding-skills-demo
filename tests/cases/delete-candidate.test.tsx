@@ -1,38 +1,23 @@
 import * as React from "react";
-import { render, screen, fireEvent, getByText, within, queryByText } from "../utils";
+import { render, screen, fireEvent, within } from "../utils";
 import App from "../../src/pages/home";
 
 test("delete candidate", async () => {
-	mockInitialData();
+	injectInitialData();
 	render(<App />);
 
-	await userSelectsCandidateToDelete();
-	await userClicksDeleteButton();
-	await userExpectsDialogHidden();
-	await userExpectsDoesntSeeTheCandidate();
+	await selectCandidateToDelete();
+	await userClicksOnDeleteButton();
+	await deleteCandidateExpects();
 });
 
 // --- STEPS ---
 
-const DATA = {
-	candidateToDelete: {
-		id: "diego-rayo",
-		name: "Diego Rayo",
-		comments: "Role: Frontend Developer",
-		step: "entrevista-tecnica",
-	},
-};
-
-async function userSelectsCandidateToDelete() {
-	const candidateStepContainer = screen.getByTestId(DATA.candidateToDelete.step);
-
-	expect(getByText(candidateStepContainer, DATA.candidateToDelete.name)).toBeInTheDocument();
-	expect(getByText(candidateStepContainer, DATA.candidateToDelete.comments)).toBeInTheDocument();
-
+async function selectCandidateToDelete() {
 	fireEvent.click(screen.getByTestId(DATA.candidateToDelete.id));
 }
 
-function userClicksDeleteButton() {
+function userClicksOnDeleteButton() {
 	const editCandidateDialog = screen.getByTestId("edit-candidate-dialog");
 
 	fireEvent.click(
@@ -42,21 +27,27 @@ function userClicksDeleteButton() {
 	);
 }
 
-function userExpectsDialogHidden() {
+function deleteCandidateExpects() {
+	/*
+	 * DIALOG SHOULD BE HIDDEN
+	 */
 	expect(screen.getByTestId("edit-candidate-dialog")).not.toHaveAttribute("open");
+
+	/*
+	 * CANDIDATE CARD SHOULDN'T APPEAR IN THE BOARD
+	 */
+	expect(screen.queryByTestId(DATA.candidateToDelete.id)).not.toBeInTheDocument();
 }
 
-function userExpectsDoesntSeeTheCandidate() {
-	const candidateStepContainer = screen.getByTestId(DATA.candidateToDelete.step);
+// --- DATA SETUP ---
 
-	expect(queryByText(candidateStepContainer, DATA.candidateToDelete.name)).not.toBeInTheDocument();
-	expect(
-		queryByText(candidateStepContainer, DATA.candidateToDelete.comments),
-	).not.toBeInTheDocument();
-}
+const DATA = {
+	candidateToDelete: {
+		id: "diego-rayo",
+		step: "entrevista-tecnica",
+	},
+};
 
-// --- MOCKS ---
-
-function mockInitialData() {
+function injectInitialData() {
 	window.localStorage.setItem("CANDIDATES", JSON.stringify([DATA.candidateToDelete]));
 }

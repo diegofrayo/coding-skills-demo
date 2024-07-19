@@ -1,36 +1,33 @@
 import * as React from "react";
-import { render, screen, fireEvent, getByLabelText, getByText, within } from "../utils";
+import { render, screen, fireEvent, getByLabelText, within, getByTestId } from "../utils";
 import App from "../../src/pages/home";
 
-test("add candidate", async () => {
-	render(<App />);
+describe("add candidate", () => {
+	beforeEach(() => {
+		clearData();
+	});
 
-	await userOpensAddCandidateDialog();
-	await userFillsTheForm();
-	await userSubmitsTheForm();
-	await userExpectsDialogHidden();
-	await userExpectsSeeingTheNewCandidate();
-});
+	it("create a new candidate", async () => {
+		render(<App />);
 
-test("close add candidate modal", async () => {
-	render(<App />);
+		await clickAddCandidateButton();
+		await fillTheForm();
+		await submitTheForm();
+		await createANewCandidateExpects();
+	});
 
-	await userOpensAddCandidateDialog();
-	await userClosesDialog();
-	await userExpectsDialogHidden();
+	it("cancel and close the dialog", async () => {
+		render(<App />);
+
+		await clickAddCandidateButton();
+		await closeDialog();
+		await cancelAndCloseTheDialogExpects();
+	});
 });
 
 // --- STEPS ---
 
-const DATA = {
-	newCandidate: {
-		name: "Diego Rayo",
-		comments: "Role: Frontend Developer",
-		step: "entrevista-inicial",
-	},
-};
-
-async function userOpensAddCandidateDialog() {
+async function clickAddCandidateButton() {
 	fireEvent.click(
 		screen.getByRole("button", {
 			name: /agregar candidato/i,
@@ -38,7 +35,7 @@ async function userOpensAddCandidateDialog() {
 	);
 }
 
-function userFillsTheForm() {
+function fillTheForm() {
 	const addCandidateDialog = screen.getByTestId("add-candidate-dialog");
 
 	fireEvent.change(getByLabelText(addCandidateDialog, "Nombre"), {
@@ -53,7 +50,7 @@ function userFillsTheForm() {
 	});
 }
 
-function userSubmitsTheForm() {
+function submitTheForm() {
 	const addCandidateDialog = screen.getByTestId("add-candidate-dialog");
 
 	fireEvent.click(
@@ -63,7 +60,7 @@ function userSubmitsTheForm() {
 	);
 }
 
-function userClosesDialog() {
+function closeDialog() {
 	fireEvent.click(
 		screen.getByRole("button", {
 			name: /close/i,
@@ -71,13 +68,47 @@ function userClosesDialog() {
 	);
 }
 
-function userExpectsDialogHidden() {
+function createANewCandidateExpects() {
+	/*
+	 * DIALOG SHOULD BE HIDDEN
+	 */
+	expect(screen.getByTestId("add-candidate-dialog")).not.toHaveAttribute("open");
+
+	/*
+	 * NEW CANDIDATE SHOULD BE RENDERED ON THE FIRST COLUMN
+	 */
+	const candidateStepContainer = screen.getByTestId(DATA.newCandidate.step);
+
+	expect(
+		within(getByTestId(candidateStepContainer, DATA.newCandidate.id)).getByText(
+			DATA.newCandidate.name,
+		),
+	).toBeInTheDocument();
+	expect(
+		within(getByTestId(candidateStepContainer, DATA.newCandidate.id)).getByText(
+			DATA.newCandidate.comments,
+		),
+	).toBeInTheDocument();
+}
+
+function cancelAndCloseTheDialogExpects() {
+	/*
+	 * DIALOG SHOULD BE HIDDEN
+	 */
 	expect(screen.getByTestId("add-candidate-dialog")).not.toHaveAttribute("open");
 }
 
-function userExpectsSeeingTheNewCandidate() {
-	const candidateStepContainer = screen.getByTestId(DATA.newCandidate.step);
+// --- DATA SETUP ---
 
-	expect(getByText(candidateStepContainer, DATA.newCandidate.name)).toBeInTheDocument();
-	expect(getByText(candidateStepContainer, DATA.newCandidate.comments)).toBeInTheDocument();
+const DATA = {
+	newCandidate: {
+		id: "diego-rayo",
+		name: "Diego Rayo",
+		comments: "Role: Frontend Developer",
+		step: "entrevista-inicial",
+	},
+};
+
+function clearData() {
+	window.localStorage.clear();
 }

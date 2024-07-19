@@ -207,14 +207,14 @@ function HomePage() {
 													</div>
 													<div>
 														<button
-															data-testid="prev-button"
+															data-testid="btn-move-to-the-left"
 															className="tw-bg-[#EFEFEF] tw-w-7 tw-text-xs tw-rounded-sm tw-h-6 tw-border tw-border-[#969798]"
 															onClick={handleMoveCandidateToPrevStepClick(candidate)}
 														>
 															{"<"}
 														</button>
 														<button
-															data-testid="next-button"
+															data-testid="btn-move-to-the-right"
 															className="tw-bg-[#EFEFEF] tw-w-7 tw-text-xs tw-rounded-sm tw-h-6 tw-border tw-border-[#969798]"
 															onClick={handleMoveCandidateToNextStepClick(candidate)}
 														>

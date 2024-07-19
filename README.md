@@ -1,30 +1,31 @@
-# React + TypeScript + Vite
+# coding-skills-demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Description
 
-Currently, two official plugins are available:
+A simple app to handle candidates process through a board with columns and cards. In this project code you can see
+- Some patterns to fetch data from an external service
+- Use of tailwind and a custom plugin
+- Integration and e2e tests
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+You can try out this app in: https://www.diegofrayo.dev/coding-skills-demo
 
-## Expanding the ESLint configuration
+## Tech-stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- Vitest + React testing library + Cypress
+- eslint + prettier
 
-- Configure the top-level `parserOptions` property like this:
+## Setup
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+- Start dev mode: `npm run dev`
+- Build the project: `npm run build`
+- Run the tests: `npm test`
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+---
+
+**Inspired by:**
+- **[#ConseguíTrabajo - Cognizant Softvision - de frontend dev con React, TypeScript y Vite | [youtube.com]](https://www.youtube.com/watch?v=fgEZXtzjwE0&feature=youtu.be)**
+- **[goncy/cognizant-softvision-challenge: Cognizant Softvision challenge | [github.com]](https://github.com/goncy/cognizant-softvision-challenge)**
