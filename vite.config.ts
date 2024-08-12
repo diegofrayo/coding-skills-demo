@@ -15,6 +15,11 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: "jsdom",
-		setupFiles: ["./tests/setupTests.ts"],
+		setupFiles: ["./tests/integration/setupTests.ts"],
 	},
+	build: {
+		outDir: "../website/diegofrayo-frontend/public/apps/coding-skills-demo",
+		emptyOutDir: true,
+	},
+	base: "./",
 });

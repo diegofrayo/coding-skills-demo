@@ -1,6 +1,6 @@
 import * as React from "react";
 import { render, screen, within } from "../utils";
-import App from "../../src/pages/home";
+import App from "../../../src/pages/home";
 
 describe("board", () => {
 	beforeEach(() => {

@@ -11,5 +11,5 @@
 		"types": ["vitest/globals"],
 		"jsx": "react"
 	},
-	"include": ["vite.config.ts", "tests", "src"]
+	"include": ["vite.config.ts", "src", "tests/integration"]
 }

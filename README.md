@@ -7,7 +7,7 @@ A simple app to handle candidates process through a board with columns and cards
 - Use of tailwind and a custom plugin
 - Integration and e2e tests
 
-You can try out this app in: https://www.diegofrayo.dev/coding-skills-demo
+You can try out this app in: https://www.diegofrayo.dev/apps/coding-skills-demo/index.html
 
 ## Tech-stack
 
